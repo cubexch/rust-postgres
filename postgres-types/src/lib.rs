@@ -644,6 +644,7 @@ impl<'a, T: FromSql<'a>, const N: usize> FromSql<'a> for [T; N] {
 
 macro_rules! impl_from_sql_tuple {
     ($n:expr; $($ty_ident:ident),*; $($var_ident:ident),*) => {
+        #[cfg(feature = "tuple-impls")]
         impl<'a, $($ty_ident),*> FromSql<'a> for ($($ty_ident,)*)
         where
             $($ty_ident: FromSql<'a>),*
