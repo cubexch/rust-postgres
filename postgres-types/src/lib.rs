@@ -579,6 +579,7 @@ impl<'a, T: FromSql<'a>> FromSql<'a> for Vec<T> {
     fn from_sql(ty: &Type, raw: &'a [u8]) -> Result<Vec<T>, Box<dyn Error + Sync + Send>> {
         let member_type = match *ty.kind() {
             Kind::Array(ref member) => member,
+            Kind::Pseudo if *ty == Type::RECORD_ARRAY => &Type::RECORD,
             _ => panic!("expected array type"),
         };
 
@@ -596,6 +597,7 @@ impl<'a, T: FromSql<'a>> FromSql<'a> for Vec<T> {
     fn accepts(ty: &Type) -> bool {
         match *ty.kind() {
             Kind::Array(ref inner) => T::accepts(inner),
+            Kind::Pseudo => *ty == Type::RECORD_ARRAY && T::accepts(&Type::RECORD),
             _ => false,
         }
     }
@@ -606,6 +608,7 @@ impl<'a, T: FromSql<'a>, const N: usize> FromSql<'a> for [T; N] {
     fn from_sql(ty: &Type, raw: &'a [u8]) -> Result<Self, Box<dyn Error + Sync + Send>> {
         let member_type = match *ty.kind() {
             Kind::Array(ref member) => member,
+            Kind::Pseudo if *ty == Type::RECORD_ARRAY => &Type::RECORD,
             _ => panic!("expected array type"),
         };
 
@@ -637,6 +640,7 @@ impl<'a, T: FromSql<'a>, const N: usize> FromSql<'a> for [T; N] {
     fn accepts(ty: &Type) -> bool {
         match *ty.kind() {
             Kind::Array(ref inner) => T::accepts(inner),
+            Kind::Pseudo => *ty == Type::RECORD_ARRAY && T::accepts(&Type::RECORD),
             _ => false,
         }
     }
@@ -1018,6 +1022,7 @@ impl<'a, T: ToSql> ToSql for &'a [T] {
     fn to_sql(&self, ty: &Type, w: &mut BytesMut) -> Result<IsNull, Box<dyn Error + Sync + Send>> {
         let member_type = match *ty.kind() {
             Kind::Array(ref member) => member,
+            Kind::Pseudo if *ty == Type::RECORD_ARRAY => &Type::RECORD,
             _ => panic!("expected array type"),
         };
 
@@ -1048,6 +1053,7 @@ impl<'a, T: ToSql> ToSql for &'a [T] {
     fn accepts(ty: &Type) -> bool {
         match *ty.kind() {
             Kind::Array(ref member) => T::accepts(member),
+            Kind::Pseudo => *ty == Type::RECORD_ARRAY && T::accepts(&Type::RECORD),
             _ => false,
         }
     }
